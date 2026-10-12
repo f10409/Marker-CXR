@@ -1,0 +1,22 @@
+{
+  "image_path": "single_marker_images_padded/p10/p10000002/s50000002/demo-single-marker.png",
+  "patient_id": 10000002,
+  "study_id": 50000002,
+  "split": "valid",
+  "questions": [
+    {
+      "question": "Where is the marker?",
+      "answer": "The marker is located at the svc.",
+      "answer_struct": "svc",
+      "question_type": "marker_grounding",
+      "question_id": "single_marker_grounding_50000002_0"
+    },
+    {
+      "question": "Is there a marker at the svc?",
+      "answer": "Yes",
+      "answer_struct": true,
+      "question_type": "marker_grounding_discriminative",
+      "question_id": "single_marker_grounding_50000002_1"
+    }
+  ]
+}

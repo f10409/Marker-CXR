@@ -1,0 +1,30 @@
+{
+  "region_to_object": {
+    "question": "What is at the {region}?",
+    "answer": "{phrase}."
+  },
+  "coordinate_to_label": {
+    "question": "What do you see at {coord}?",
+    "answer": "{phrase}{region_clause}.",
+    "region_clause": ", located at the {region}"
+  },
+  "coordinate_to_anatomy": {
+    "question": "What anatomical region is at {coord}?",
+    "answer_quadrant_fallback": "Outside the key anatomical locations, in the patient's {quadrant}.",
+    "answer_region": "The {region}."
+  },
+  "category_discrimination": {
+    "question": "At {coord}, is it a marker or a finding?",
+    "answer_marker": "Marker.",
+    "answer_finding": "Finding."
+  },
+  "coordinate_to_label_negative": {
+    "question": "What do you see at {coord}?",
+    "answer": "There is no marker or finding there."
+  },
+  "coordinate_marker_existence": {
+    "question": "Is there a marker at {coord}?",
+    "answer_yes": "Yes",
+    "answer_no": "No"
+  }
+}

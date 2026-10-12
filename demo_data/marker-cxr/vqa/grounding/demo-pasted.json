@@ -1,0 +1,38 @@
+{
+  "image_path": "pasted_images_padded/p10/p10000001/s50000001/demo-pasted.png",
+  "patient_id": 10000001,
+  "study_id": 50000001,
+  "split": "train",
+  "questions": [
+    {
+      "question": "Where are the markers?",
+      "answer": "The markers are located at the left clavicle, the left hilar structures, the right lower lung zone, the right lung, the patient's upper left, and the patient's upper right.",
+      "answer_struct": [
+        "left clavicle",
+        "left hilar structures",
+        "right lower lung zone",
+        "right lung",
+        "upper left",
+        "upper right"
+      ],
+      "question_type": "marker_grounding",
+      "question_id": "grounding_50000001_0"
+    },
+    {
+      "question": "Is there a marker at the left clavicle?",
+      "answer": "Yes",
+      "answer_struct": true,
+      "question_type": "marker_grounding_discriminative",
+      "question_id": "grounding_50000001_1"
+    },
+    {
+      "question": "Where is the pneumothorax?",
+      "answer": "The pneumothorax is located at the right lung.",
+      "answer_struct": [
+        "right lung"
+      ],
+      "question_type": "finding_grounding_imagenome",
+      "question_id": "grounding_50000001_2"
+    }
+  ]
+}

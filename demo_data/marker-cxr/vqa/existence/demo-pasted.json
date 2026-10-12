@@ -1,0 +1,43 @@
+{
+  "image_path": "pasted_images_padded/p10/p10000001/s50000001/demo-pasted.png",
+  "patient_id": 10000001,
+  "study_id": 50000001,
+  "split": "train",
+  "questions": [
+    {
+      "question": "Is there a marker visible in this image?",
+      "answer": "Yes",
+      "answer_struct": true,
+      "question_type": "marker_existence",
+      "question_id": "existence_50000001_0"
+    },
+    {
+      "question": "Does this image show a finding?",
+      "answer": "No",
+      "answer_struct": false,
+      "question_type": "finding_existence",
+      "question_id": "existence_50000001_1"
+    },
+    {
+      "question": "Is there evidence of atelectasis in this image?",
+      "answer": "No",
+      "answer_struct": false,
+      "question_type": "specific_label_existence",
+      "question_id": "existence_50000001_2"
+    },
+    {
+      "question": "How many markers are in this image?",
+      "answer": "6",
+      "answer_struct": 6,
+      "question_type": "marker_counting",
+      "question_id": "existence_50000001_3"
+    },
+    {
+      "question": "How many markers are near the left clavicle?",
+      "answer": "1",
+      "answer_struct": 1,
+      "question_type": "region_conditioned_marker_counting",
+      "question_id": "existence_50000001_4"
+    }
+  ]
+}

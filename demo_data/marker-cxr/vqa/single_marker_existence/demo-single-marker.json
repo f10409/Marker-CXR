@@ -1,0 +1,22 @@
+{
+  "image_path": "single_marker_images_padded/p10/p10000002/s50000002/demo-single-marker.png",
+  "patient_id": 10000002,
+  "study_id": 50000002,
+  "split": "valid",
+  "questions": [
+    {
+      "question": "How many markers are in this image?",
+      "answer": "1",
+      "answer_struct": 1,
+      "question_type": "marker_counting",
+      "question_id": "single_marker_existence_50000002_0"
+    },
+    {
+      "question": "How many markers are near the svc?",
+      "answer": "1",
+      "answer_struct": 1,
+      "question_type": "region_conditioned_marker_counting",
+      "question_id": "single_marker_existence_50000002_1"
+    }
+  ]
+}

@@ -1,0 +1,1016 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>VQA Review</title>
+<style>
+  :root {
+    --marker: #e63946;
+    --finding: #2a9d8f;
+    --anatomical: #457b9d;
+    --bg: #f7f7f5;
+    --panel-bg: #ffffff;
+    --border: #ddd;
+    --muted: #888;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    background: var(--bg);
+    color: #222;
+    font-size: 14px;
+  }
+  #setup {
+    max-width: 720px;
+    margin: 60px auto;
+    background: var(--panel-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 24px 32px;
+  }
+  #setup h1 { font-size: 18px; margin-top: 0; }
+  #setup h2 { font-size: 15px; margin: 0 0 6px; }
+  #setup section { margin-bottom: 22px; padding-bottom: 18px; border-bottom: 1px solid var(--border); }
+  #setup section:last-of-type { border-bottom: none; }
+  #setup ol { line-height: 1.8; }
+  #setup .row { margin: 14px 0; display: flex; align-items: center; gap: 10px; }
+  #setup .status { font-size: 13px; color: var(--muted); }
+  #setup .status.ok { color: #2a9d8f; font-weight: 600; }
+  #setup .status.err { color: var(--marker); font-weight: 600; }
+  #setup pre {
+    background: #f0f0ee;
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: 8px 10px;
+    overflow-x: auto;
+    font-size: 12.5px;
+  }
+  button, input[type=text], input[type=number] {
+    font: inherit;
+    padding: 6px 10px;
+    border: 1px solid #bbb;
+    border-radius: 5px;
+    background: white;
+  }
+  button { cursor: pointer; background: #f0f0f0; }
+  button:hover { background: #e6e6e6; }
+  button:disabled { opacity: 0.5; cursor: default; }
+  #app { display: none; height: 100vh; flex-direction: column; }
+  #app.ready { display: flex; }
+  #topbar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 14px;
+    background: var(--panel-bg);
+    border-bottom: 1px solid var(--border);
+    flex-wrap: wrap;
+  }
+  #topbar .spacer { flex: 1; }
+  #stemInfo { font-size: 13px; color: var(--muted); }
+  #stemInfo b { color: #222; }
+  #main { flex: 1; display: flex; min-height: 0; }
+  #imgPane {
+    flex: 1.3;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 14px;
+    overflow: auto;
+    background: #111;
+  }
+  #imgWrap { position: relative; display: inline-block; max-width: 100%; max-height: 100%; }
+  #mainImg { max-width: 100%; max-height: 82vh; display: block; user-select: none; }
+  .ovbox {
+    position: absolute;
+    border-width: 2px;
+    box-sizing: border-box;
+    pointer-events: none;
+  }
+  .ovbox.dashed { border-style: dashed; }
+  .ovbox.solid { border-style: solid; }
+  .ovbox.ovpoint {
+    width: 14px;
+    height: 14px;
+    margin-left: -7px;
+    margin-top: -7px;
+    border-width: 3px;
+    border-style: solid;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.35);
+  }
+  .ovbox-label {
+    position: absolute;
+    left: 0;
+    top: -1.15em;
+    font-size: 11px;
+    padding: 0 3px;
+    white-space: nowrap;
+    background: rgba(255,255,255,0.85);
+  }
+  .ovbox.highlight {
+    outline: 3px solid gold;
+    z-index: 5;
+  }
+  #legend {
+    font-size: 12px;
+    color: #ddd;
+    margin-top: 8px;
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  #legend label { display: flex; align-items: center; gap: 5px; cursor: pointer; }
+  #legend .swatch { width: 14px; height: 14px; border-radius: 3px; display: inline-block; }
+  #qaPane {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    border-left: 1px solid var(--border);
+    background: var(--panel-bg);
+    min-width: 340px;
+  }
+  #qaFilterBar {
+    display: flex;
+    gap: 8px;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+    align-items: center;
+  }
+  #qaFilterBar input { flex: 1; }
+  #qaPanel { flex: 1; overflow-y: auto; padding: 4px 12px 20px; }
+  .stage-section h3 {
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--muted);
+    margin: 16px 0 6px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 4px;
+  }
+  .qa-row {
+    padding: 6px 8px;
+    border-radius: 6px;
+    margin-bottom: 2px;
+    cursor: default;
+  }
+  .qa-row.has-box { cursor: pointer; }
+  .qa-row.has-box:hover { background: #fff6d8; }
+  .qa-row.qa-hidden { display: none; }
+  .qa-q { font-weight: 600; }
+  .qa-a { color: #333; margin-top: 1px; }
+  .qa-tag {
+    display: inline-block;
+    margin-top: 3px;
+    font-size: 10px;
+    color: var(--muted);
+    font-family: monospace;
+  }
+  /* A question's model-agnostic `reasoning_frame` (Stage 3 box types and
+     Stage 4 coordinate-reading types), hidden until the "reasoning" box in
+     the filter bar is ticked -- it's a paragraph per question, so showing
+     it by default would bury the Q/A list. */
+  .qa-frame {
+    display: none;
+    margin-top: 4px;
+    padding: 4px 8px;
+    border-left: 3px solid #cfcfcf;
+    background: #fafaf8;
+    color: #555;
+    font-size: 12.5px;
+    line-height: 1.45;
+  }
+  #qaPanel.show-frames .qa-frame { display: block; }
+  #qaFilterBar label {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    color: var(--muted);
+    white-space: nowrap;
+    cursor: pointer;
+  }
+  .muted { color: var(--muted); font-style: italic; }
+  #jumpResult { font-size: 12px; color: var(--muted); min-width: 90px; }
+  kbd {
+    background: #eee;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    padding: 0 4px;
+    font-family: monospace;
+    font-size: 11px;
+  }
+</style>
+</head>
+<body>
+
+<div id="setup">
+  <h1>VQA Review</h1>
+  <p>Browse the Marker-CXR questions and answers overlaid on the images. Needs the Marker-CXR download from PhysioNet (<code>vqa/</code>, with <code>vqa/review_manifest.json</code>, and <code>images/</code>). Nothing is ever uploaded anywhere &mdash; both modes only read from this machine.</p>
+  <p>The three cohorts reuse image names (a single_marker PNG is a marker_free PNG with one marker pasted on), so images are looked up by <code>&lt;cohort folder&gt;/p../p../s../file.png</code>, and the top bar has a cohort dropdown.</p>
+
+  <section>
+    <h2>Option A &mdash; local or mounted folders</h2>
+    <p>Use this when this page's browser can see <code>vqa/</code> and the images directly on disk (running on this machine, or they're mounted in, e.g. via SSHFS).</p>
+    <div class="row">
+      <button id="pickVqa">Choose vqa/ folder</button>
+      <span id="vqaStatus" class="status">not loaded</span>
+    </div>
+    <div class="row">
+      <button id="pickImages">Choose images folder</button>
+      <span id="imgStatus" class="status">not loaded</span>
+    </div>
+    <input type="file" id="vqaInput" webkitdirectory style="display:none">
+    <input type="file" id="imgInput" webkitdirectory style="display:none">
+    <p class="status">For images, pick the folder that holds <code>pasted_images_padded/</code>, <code>marker_free_images_padded/</code> and <code>single_marker_images_padded/</code>, or pick those folders one at a time (the button can be used more than once). Requires a Chromium-based browser (Chrome/Edge) for folder selection. Picked folder contents stay in this tab's memory &mdash; nothing leaves the browser.</p>
+  </section>
+
+  <section>
+    <h2>Option B &mdash; load from a server (SSH tunnel, no mount needed)</h2>
+    <p>Copy this page into the Marker-CXR folder (the one that holds <code>vqa/</code> and <code>images/</code>) and start a static server there:</p>
+    <pre>cp review_vqa.html /path/to/Marker-CXR/
+cd /path/to/Marker-CXR && python3 -m http.server 8000</pre>
+    <p>On the same machine, browse to <code>http://localhost:8000/review_vqa.html</code>. On a remote machine:</p>
+    <pre>ssh -L 8000:localhost:8000 user@remote-host</pre>
+    <p>&hellip; then browse to <code>http://localhost:8000/review_vqa.html</code> and click below.</p>
+    <div class="row">
+      <button id="loadServer">Load from server (this origin)</button>
+      <span id="serverStatus" class="status">not loaded</span>
+    </div>
+  </section>
+</div>
+
+<div id="app">
+  <div id="topbar">
+    <button id="prevBtn" title="Previous (←)">&larr; Prev</button>
+    <button id="nextBtn" title="Next (→)">Next &rarr;</button>
+    <button id="randomBtn" title="Random image">Random</button>
+    <select id="cohortSelect" title="Which image cohort to browse"></select>
+    <select id="stageSelect" title="Only show questions from this stage; Prev/Next/Random skip images that have none"></select>
+    <select id="typeSelect" title="Only show this question type; Prev/Next/Random skip images that don't have it"></select>
+    <span id="stemInfo">&mdash;</span>
+    <div class="spacer"></div>
+    <input type="text" id="jumpInput" placeholder="Search question/answer text, Enter = jump to next match" size="34">
+    <span id="jumpResult"></span>
+    <input type="number" id="gotoInput" placeholder="#" size="4" style="width:60px">
+    <button id="gotoBtn">Go</button>
+  </div>
+  <div id="main">
+    <div id="imgPane">
+      <div id="imgWrap">
+        <img id="mainImg" alt="">
+      </div>
+      <div id="legend">
+        <label><input type="checkbox" id="toggleMarker" checked><span class="swatch" style="background:var(--marker)"></span>marker</label>
+        <label><input type="checkbox" id="toggleFinding" checked><span class="swatch" style="background:var(--finding)"></span>finding</label>
+        <label><input type="checkbox" id="toggleAnatomical" checked><span class="swatch" style="background:var(--anatomical)"></span>anatomical</label>
+        <span style="color:#aaa">solid box = *_bbox stage answer (always shown) &middot; dashed = disambiguation tied / no-object sample / region named by a "No", "0" or "no marker" answer (hover) &middot; &#9679; dot = point-format answer, hover a localization/identification question to preview it</span>
+      </div>
+    </div>
+    <div id="qaPane">
+      <div id="qaFilterBar">
+        <input type="text" id="filterInput" placeholder="Filter this image's questions...">
+        <label title="Show each question's reasoning_frame (Stage 3 box-producing and Stage 4 coordinate-reading types) under its answer"><input type="checkbox" id="toggleFrames"> reasoning</label>
+      </div>
+      <div id="qaPanel"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Three image cohorts, each with its own stage folders under vqa/ and its
+// own PNG folder under the images root. Stems repeat across cohorts (a
+// single_marker PNG is the marker_free PNG with one marker pasted on), so
+// everything below is keyed by "<cohort>/<stem>", never by stem alone.
+// `family` says how a stage's questions are drawn: the *_bbox families
+// carry the box geometry (plus anatomical regions, which have no point
+// form); the plain families carry mirrored point answers, or none.
+// The pasted stages are in point-first curriculum order, same as
+// the question generator's stage order.
+const STAGE_INFO = {
+  // pasted cohort (csvs/final_table.csv)
+  existence:                       { cohort: "pasted", family: "existence" },
+  grounding:                       { cohort: "pasted", family: "grounding" },
+  localization:                    { cohort: "pasted", family: "localization" },
+  localization_bbox:               { cohort: "pasted", family: "localization_bbox" },
+  identification:                  { cohort: "pasted", family: "identification" },
+  identification_bbox:             { cohort: "pasted", family: "identification_bbox" },
+  // marker_free / single_marker cohorts
+  existence_negatives:               { cohort: "marker_free", family: "existence" },
+  marker_free_localization:          { cohort: "marker_free", family: "localization" },
+  marker_free_localization_bbox:     { cohort: "marker_free", family: "localization_bbox" },
+  single_marker_existence:           { cohort: "single_marker", family: "existence" },
+  single_marker_grounding:           { cohort: "single_marker", family: "grounding" },
+  single_marker_localization:        { cohort: "single_marker", family: "localization" },
+  single_marker_localization_bbox:   { cohort: "single_marker", family: "localization_bbox" },
+  single_marker_identification:      { cohort: "single_marker", family: "identification" },
+  single_marker_identification_bbox: { cohort: "single_marker", family: "identification_bbox" },
+};
+const STAGES = Object.keys(STAGE_INFO);
+const COHORTS = ["pasted", "marker_free", "single_marker"];
+
+// Stage/question-type filter options. Stages are filtered by family, so one
+// choice covers every cohort's folder of that family. A type missing from
+// the lists below still shows under "all types".
+const FAMILIES = ["existence", "grounding", "localization", "localization_bbox", "identification", "identification_bbox"];
+const LOCALIZATION_TYPES = [
+  "finding_localization_mscxr", "finding_localization_mscxr_region_conditioned", "finding_localization_mscxr_negative",
+  "marker_localization", "marker_localization_region_conditioned", "marker_localization_quadrant_conditioned",
+  "marker_localization_negative", "marker_count_region_conditioned", "marker_count_quadrant_conditioned",
+];
+const IDENTIFICATION_TYPES = [
+  "region_to_object", "coordinate_to_label", "coordinate_to_anatomy", "category_discrimination",
+  "coordinate_to_label_negative", "coordinate_marker_existence",
+];
+const QUESTION_TYPES_BY_FAMILY = {
+  existence: ["marker_existence", "finding_existence", "specific_label_existence", "marker_counting", "region_conditioned_marker_counting"],
+  grounding: ["finding_grounding_imagenome", "marker_grounding", "marker_grounding_discriminative"],
+  localization: LOCALIZATION_TYPES,
+  localization_bbox: ["anatomical_region_localization", ...LOCALIZATION_TYPES],  // anatomical regions: bbox only
+  identification: IDENTIFICATION_TYPES,
+  identification_bbox: IDENTIFICATION_TYPES,
+};
+let filterStage = "all";
+let filterType = "all";
+function filterActive() { return filterStage !== "all" || filterType !== "all"; }
+function stageShown(stage) { return filterStage === "all" || STAGE_INFO[stage].family === filterStage; }
+function typeShown(q) { return filterType === "all" || q.question_type === filterType; }
+function cohortStages(cohort) { return STAGES.filter(s => STAGE_INFO[s].cohort === cohort); }
+function splitKey(key) { const i = key.indexOf("/"); return { cohort: key.slice(0, i), stem: key.slice(i + 1) }; }
+function sortKeys(keys) {
+  return keys.sort((a, b) =>
+    (COHORTS.indexOf(splitKey(a).cohort) - COHORTS.indexOf(splitKey(b).cohort)) || a.localeCompare(b));
+}
+// "<png folder>/p../p../s../file.png": the last 5 parts of an image path,
+// the same for a picked File's webkitRelativePath, a record's absolute
+// image_path and the manifest's image_rel_path.
+function imageKey(path) { return path.split("/").slice(-5).join("/"); }
+const KIND_COLOR = { marker: "#e63946", finding: "#2a9d8f", anatomical: "#457b9d" };
+
+// -- in-memory data, populated either by the two folder pickers (Option A)
+// or by fetch() against this page's own origin (Option B) --
+const data = {};       // "<cohort>/<stem>" -> { <stage>: record }
+let manifest = {};     // "<cohort>/<stem>" -> { cohort, image_rel_path, marker_bbox_regions, mscxr_finding_regions, anatomical: [{label, box}] }
+const imagesByPath = {}; // imageKey(path) -> File (Option A only)
+let imageCount = 0;
+let allKeys = [];      // every loaded "<cohort>/<stem>", in display order
+let stems = [];        // allKeys narrowed by the cohort dropdown
+let currentIndex = 0;
+let currentObjectUrl = null;
+let visibleKinds = new Set(["marker", "finding", "anatomical"]);
+let serverMode = false; // true once "Load from server" succeeds -- stage JSON/images are fetched, not picked
+let navToken = 0;       // guards against a slow fetch resolving after a newer goTo() superseded it
+
+// ---------------------------------------------------------------------
+// Loading
+// ---------------------------------------------------------------------
+
+function setStatus(el, text, cls) {
+  el.textContent = text;
+  el.className = "status" + (cls ? " " + cls : "");
+}
+
+document.getElementById("pickVqa").addEventListener("click", () => document.getElementById("vqaInput").click());
+document.getElementById("pickImages").addEventListener("click", () => document.getElementById("imgInput").click());
+
+document.getElementById("vqaInput").addEventListener("change", async (e) => {
+  const files = Array.from(e.target.files);
+  const statusEl = document.getElementById("vqaStatus");
+  setStatus(statusEl, `loading ${files.length} files...`);
+  let loaded = 0;
+  for (const file of files) {
+    const rel = file.webkitRelativePath || file.name;
+    const parts = rel.split("/");
+    const base = parts[parts.length - 1];
+    if (base === "review_manifest.json") {
+      try {
+        manifest = JSON.parse(await file.text());
+      } catch (err) {
+        console.error("failed to parse review_manifest.json", err);
+      }
+      continue;
+    }
+    if (!base.endsWith(".json")) continue;
+    const stageIdx = parts.findIndex(p => STAGES.includes(p));
+    if (stageIdx === -1 || stageIdx + 1 >= parts.length) continue;
+    const stage = parts[stageIdx];
+    const key = STAGE_INFO[stage].cohort + "/" + base.slice(0, -".json".length);
+    try {
+      const record = JSON.parse(await file.text());
+      if (!data[key]) data[key] = {};
+      data[key][stage] = record;
+      loaded++;
+    } catch (err) {
+      console.error("failed to parse", rel, err);
+    }
+  }
+  allKeys = sortKeys(Object.keys(data));
+  setStatus(
+    statusEl,
+    `${loaded} question files loaded, ${allKeys.length} images, manifest: ${Object.keys(manifest).length ? "yes" : "missing"}`,
+    "ok"
+  );
+  maybeReady();
+});
+
+document.getElementById("imgInput").addEventListener("change", (e) => {
+  const files = Array.from(e.target.files);
+  const statusEl = document.getElementById("imgStatus");
+  let n = 0;
+  for (const file of files) {
+    if (!/\.(png|jpg|jpeg)$/i.test(file.name)) continue;
+    imagesByPath[imageKey(file.webkitRelativePath || file.name)] = file;
+    n++;
+  }
+  imageCount += n;
+  setStatus(statusEl, `${imageCount} images indexed`, "ok");
+  maybeReady();
+});
+
+function maybeReady() {
+  if (allKeys.length && imageCount) {
+    document.getElementById("app").classList.add("ready");
+    populateCohortSelect();
+    applyCohortFilter();
+  }
+}
+
+document.getElementById("loadServer").addEventListener("click", async () => {
+  const statusEl = document.getElementById("serverStatus");
+  setStatus(statusEl, "loading manifest...");
+  try {
+    const res = await fetch("vqa/review_manifest.json");
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    manifest = await res.json();
+  } catch (err) {
+    setStatus(
+      statusEl,
+      `failed (${err.message}) -- serve this page from a directory containing vqa/review_manifest.json`,
+      "err"
+    );
+    return;
+  }
+  serverMode = true;
+  allKeys = sortKeys(Object.keys(manifest));
+  setStatus(statusEl, `${allKeys.length} images available (fetched on demand as you browse)`, "ok");
+  document.getElementById("app").classList.add("ready");
+  populateCohortSelect();
+  applyCohortFilter();
+});
+
+// The cohort dropdown narrows `stems` to one cohort, or shows all three.
+function populateCohortSelect() {
+  const counts = {};
+  for (const k of allKeys) { const c = splitKey(k).cohort; counts[c] = (counts[c] || 0) + 1; }
+  document.getElementById("cohortSelect").innerHTML =
+    `<option value="all">all cohorts (${allKeys.length})</option>` +
+    COHORTS.filter(c => counts[c]).map(c => `<option value="${c}">${c} (${counts[c]})</option>`).join("");
+}
+function applyCohortFilter() {
+  const chosen = document.getElementById("cohortSelect").value;
+  stems = chosen === "all" ? allKeys.slice() : allKeys.filter(k => splitKey(k).cohort === chosen);
+  goToMatch(0, 1);
+}
+document.getElementById("cohortSelect").addEventListener("change", applyCohortFilter);
+
+// Populates data[key] (fetching it in server mode; already-loaded folder-
+// picker data is returned as-is) so goTo()/the search below always have
+// the record before they read from `data`.
+async function ensureStemLoaded(key) {
+  if (data[key]) return data[key];
+  const record = {};
+  if (serverMode) {
+    const { cohort, stem } = splitKey(key);
+    for (const stage of cohortStages(cohort)) {
+      try {
+        const res = await fetch(`vqa/${stage}/${encodeURIComponent(stem)}.json`);
+        if (res.ok) record[stage] = await res.json();
+      } catch (err) {
+        console.error("failed to fetch", stage, stem, err);
+      }
+    }
+  }
+  data[key] = record;
+  return record;
+}
+
+// ---------------------------------------------------------------------
+// Overlay computation (ported from visualize_vqa.ipynb's show_image_with_boxes)
+// ---------------------------------------------------------------------
+
+function questionKind(qt) {
+  if (qt.startsWith("marker_localization")) return "marker";
+  if (qt.startsWith("finding_localization")) return "finding";
+  if (qt === "anatomical_region_localization") return "anatomical";
+  return null;
+}
+function countFallbackKind(qt) {
+  if (qt.startsWith("marker_count")) return "marker";
+  if (qt.startsWith("finding_count")) return "finding";
+  return null;
+}
+const REGION_COUNT_RE = /^How many .+ (?:is|are) near the (.+)\?$/;
+const QUADRANT_COUNT_RE = /^How many .+ (?:is|are) in the patient's (.+)\?$/;
+function quadrantBox(q) {
+  const [vertical, horizontal] = q.split(" ");
+  const y = vertical === "upper" ? [0, 0.5] : [0.5, 1];
+  const x = horizontal === "right" ? [0, 0.5] : [0.5, 1];
+  return [y[0], y[1], x[0], x[1]];
+}
+// answer_struct and in-question coordinates are on a 0-1000 scale;
+// manifest boxes stay in [0, 1],
+// and every overlay below is positioned in [0, 1].
+const VQA_COORD_SCALE = 1000;
+function fromVqaScale(v) {
+  return v.map(x => x / VQA_COORD_SCALE);
+}
+function isBox(v) {
+  return Array.isArray(v) && v.length === 4 && v.every(x => typeof x === "number");
+}
+function isPoint(v) {
+  return Array.isArray(v) && v.length === 2 && v.every(x => typeof x === "number");
+}
+
+// Computes overlay boxes for the current stem, and tags each question
+// object in-place with `_boxId` when it maps to a drawable box.
+// A `*_count_region_conditioned`/`*_count_quadrant_conditioned` question's
+// disambiguation chain tied (plan.md's decided rule) -- no individual box,
+// just the region/quadrant it tied on. This question is generated
+// identically into both a stage and its `_bbox` sibling, so both the permanent overlay
+// (below, for the bbox stage) and the point stage's hover locator resolve
+// it the same way.
+function resolveCountFallbackBox(q, manifestEntry) {
+  let m = q.question.match(QUADRANT_COUNT_RE);
+  if (m) return quadrantBox(m[1]);
+  m = q.question.match(REGION_COUNT_RE);
+  if (!m) return null;
+  const found = (manifestEntry?.anatomical || []).find(a => a.label === m[1]);
+  return found ? found.box : null;
+}
+
+function computeOverlay(key) {
+  const rec = data[key] || {};
+  const manifestEntry = manifest[key];
+  const boxes = []; // {id, kind, box, dashed, text}
+  let nextId = 0;
+
+  // The cohort's box stage: localization_bbox, single_marker_localization_bbox
+  // or marker_free_localization_bbox (whose negatives carry no box).
+  const bboxStage = cohortStages(splitKey(key).cohort).find(s => STAGE_INFO[s].family === "localization_bbox");
+  const loc = bboxStage ? rec[bboxStage] : null;
+  if (loc) {
+    for (const q of loc.questions) {
+      q._boxId = null;
+      if (!stageShown(bboxStage) || !typeShown(q)) continue;  // filtered out: no box
+      const kind = questionKind(q.question_type);
+      if ((kind === "marker" || kind === "finding" || kind === "anatomical") && isBox(q.answer_struct)) {
+        const id = nextId++;
+        boxes.push({ id, kind, box: fromVqaScale(q.answer_struct), dashed: false, text: null });
+        q._boxId = id;
+        continue;
+      }
+      const fk = countFallbackKind(q.question_type);
+      if (!fk) continue;
+      const fbox = resolveCountFallbackBox(q, manifestEntry);
+      if (!fbox) continue;
+      const id = nextId++;
+      boxes.push({ id, kind: fk, box: fbox, dashed: true, text: q.answer });
+      q._boxId = id;
+    }
+  }
+
+  const regionsWithObjects = new Set(
+    [
+      ...((manifestEntry?.marker_bbox_regions) || []),
+      ...((manifestEntry?.mscxr_finding_regions) || []),
+    ].filter(r => r !== null && r !== undefined)
+  );
+  for (const a of (manifestEntry?.anatomical || [])) {
+    if (!filterActive() && regionsWithObjects.has(a.label)) {  // context boxes only when unfiltered
+      boxes.push({ id: nextId++, kind: "anatomical", box: a.box, dashed: false, text: null });
+    }
+  }
+
+  return boxes;
+}
+
+function renderOverlay(boxes) {
+  const wrap = document.getElementById("imgWrap");
+  wrap.querySelectorAll(".ovbox").forEach(el => el.remove());
+  hoverBoxEl = null; // just removed along with every other .ovbox above
+  for (const b of boxes) {
+    if (!visibleKinds.has(b.kind)) continue;
+    const [y0, y1, x0, x1] = b.box;
+    const div = document.createElement("div");
+    div.className = "ovbox " + (b.dashed ? "dashed" : "solid");
+    div.dataset.boxId = b.id;
+    div.style.left = (x0 * 100) + "%";
+    div.style.top = (y0 * 100) + "%";
+    div.style.width = ((x1 - x0) * 100) + "%";
+    div.style.height = ((y1 - y0) * 100) + "%";
+    div.style.borderColor = KIND_COLOR[b.kind];
+    if (b.text) {
+      const label = document.createElement("span");
+      label.className = "ovbox-label";
+      label.style.color = KIND_COLOR[b.kind];
+      label.textContent = b.text;
+      div.appendChild(label);
+    }
+    wrap.appendChild(div);
+  }
+}
+
+function highlightBox(boxId) {
+  document.querySelectorAll(".ovbox").forEach(el => el.classList.remove("highlight"));
+  if (boxId == null) return;
+  const el = document.querySelector(`.ovbox[data-box-id="${boxId}"]`);
+  if (el) el.classList.add("highlight");
+}
+
+// ---------------------------------------------------------------------
+// Hover-only coordinate previews, for questions whose coordinate isn't
+// already part of the permanent overlay above:
+//  - localization's point answers (answer_struct is the point directly --
+//    the coordinate is the *answer*).
+//  - identification/identification_bbox's box-in-question templates,
+//    where a 2-number point or a 4-number box is embedded in the
+//    *question text* instead (self-describing either way -- no need to
+//    know which stage a question came from to parse it).
+// Since the same underlying object's box is usually already drawn
+// permanently via localization_bbox anyway, these are rendered as a
+// transient marker on hover rather than added to the permanent overlay.
+// ---------------------------------------------------------------------
+
+const COORD_IN_TEXT_RE = /\[([\d.,\s]+)\]/;
+function parseCoordFromText(text) {
+  const m = text.match(COORD_IN_TEXT_RE);
+  if (!m) return null;
+  const nums = m[1].split(",").map(s => parseFloat(s.trim()) / VQA_COORD_SCALE);
+  if (nums.length === 2) return { coord: nums, isPoint: true };
+  if (nums.length === 4) return { coord: nums, isPoint: false };
+  return null;
+}
+
+function locateLocalizationHoverTarget(q, manifestEntry) {
+  const kind = questionKind(q.question_type);
+  if ((kind === "marker" || kind === "finding") && isPoint(q.answer_struct)) {
+    return { coord: fromVqaScale(q.answer_struct), isPoint: true, kind };
+  }
+  const fk = countFallbackKind(q.question_type);
+  if (!fk) return null;
+  const fbox = resolveCountFallbackBox(q, manifestEntry);
+  return fbox ? { coord: fbox, isPoint: false, kind: fk, dashed: true, text: q.answer } : null;
+}
+
+function locateIdentificationHoverTarget(q, manifestEntry) {
+  switch (q.question_type) {
+    case "region_to_object": {
+      const m = q.question.match(/^What is at the (.+)\?$/);
+      if (!m) return null;
+      const found = (manifestEntry?.anatomical || []).find(a => a.label === m[1]);
+      return found ? { coord: found.box, isPoint: false, kind: "anatomical" } : null;
+    }
+    case "coordinate_to_label": {
+      const parsed = parseCoordFromText(q.question);
+      if (!parsed) return null;
+      const kind = (q.answer_struct?.objects || []).includes("marker") ? "marker" : "finding";
+      return { ...parsed, kind };
+    }
+    case "coordinate_to_anatomy": {
+      const parsed = parseCoordFromText(q.question);
+      return parsed ? { ...parsed, kind: "anatomical" } : null;
+    }
+    case "category_discrimination": {
+      const parsed = parseCoordFromText(q.question);
+      if (!parsed) return null;
+      return { ...parsed, kind: q.answer_struct === "marker" ? "marker" : "finding" };
+    }
+    case "coordinate_to_label_negative": {
+      const parsed = parseCoordFromText(q.question);
+      return parsed ? { ...parsed, kind: "anatomical", dashed: true } : null;
+    }
+    case "coordinate_marker_existence": {
+      // single_marker cohort's yes/no at a coordinate: solid at the marker, dashed "No" at the empty spot
+      const parsed = parseCoordFromText(q.question);
+      if (!parsed) return null;
+      const yes = q.answer_struct === true;
+      return { ...parsed, kind: "marker", dashed: !yes, text: yes ? null : q.answer };
+    }
+    default:
+      return null;
+  }
+}
+
+// Questions that name a region or quadrant but carry no coordinate:
+// marker_grounding (region or quadrant in answer_struct),
+// marker_grounding_discriminative, region_conditioned_marker_counting,
+// marker_count_region_conditioned and marker_localization_negative (region
+// in the question text). Hovering shows that region's box, so a "No", "0"
+// or "There is no marker at ..." answer can be checked against the image;
+// those negative answers get a dashed box labeled with the answer.
+const REGION_IN_QUESTION_RE = /\b(?:at|near) the (.+?)\?$/;
+const QUADRANT_IN_QUESTION_RE = /\bin the patient's (.+?)\?$/;
+const QUADRANT_RE = /^(?:upper|lower) (?:left|right)$/;
+function locateRegionHoverTarget(q, manifestEntry) {
+  let name = typeof q.answer_struct === "string" ? q.answer_struct : null;
+  if (!name) {
+    const m = q.question.match(REGION_IN_QUESTION_RE) || q.question.match(QUADRANT_IN_QUESTION_RE);
+    if (m) name = m[1];
+  }
+  if (!name) return null;
+  const found = (manifestEntry?.anatomical || []).find(a => a.label === name);
+  const coord = found ? found.box : (QUADRANT_RE.test(name) ? quadrantBox(name) : null);
+  if (!coord) return null;
+  const kind = q.question_type.startsWith("marker") ? "marker"
+    : q.question_type.startsWith("finding") ? "finding" : "anatomical";
+  const negative = q.answer_struct === false || q.answer_struct === 0 || q.answer_struct === null;
+  return { coord, isPoint: false, kind, dashed: negative, text: negative ? q.answer : null };
+}
+
+let hoverBoxEl = null;
+function showHoverTarget(coord, kind, { isPoint = false, dashed = false, text = null } = {}) {
+  clearHoverBox();
+  if (!visibleKinds.has(kind)) return;
+  const wrap = document.getElementById("imgWrap");
+  const div = document.createElement("div");
+  if (isPoint) {
+    const [y, x] = coord;
+    div.className = "ovbox ovpoint highlight";
+    div.style.left = (x * 100) + "%";
+    div.style.top = (y * 100) + "%";
+  } else {
+    const [y0, y1, x0, x1] = coord;
+    div.className = "ovbox highlight " + (dashed ? "dashed" : "solid");
+    div.style.left = (x0 * 100) + "%";
+    div.style.top = (y0 * 100) + "%";
+    div.style.width = ((x1 - x0) * 100) + "%";
+    div.style.height = ((y1 - y0) * 100) + "%";
+  }
+  div.style.borderColor = KIND_COLOR[kind];
+  if (text) {
+    const label = document.createElement("span");
+    label.className = "ovbox-label";
+    label.style.color = KIND_COLOR[kind];
+    label.textContent = text;
+    div.appendChild(label);
+  }
+  wrap.appendChild(div);
+  hoverBoxEl = div;
+}
+function clearHoverBox() {
+  if (hoverBoxEl) { hoverBoxEl.remove(); hoverBoxEl = null; }
+}
+
+// ---------------------------------------------------------------------
+// Q&A panel
+// ---------------------------------------------------------------------
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
+  }[c]));
+}
+
+function renderQuestions(key) {
+  const rec = data[key] || {};
+  const manifestEntry = manifest[key];
+  const panel = document.getElementById("qaPanel");
+  panel.innerHTML = "";
+  for (const stage of cohortStages(splitKey(key).cohort)) {
+    if (!stageShown(stage)) continue;
+    const family = STAGE_INFO[stage].family;
+    const record = rec[stage];
+    const shown = record ? record.questions.filter(typeShown) : [];
+    if (filterActive() && !shown.length) continue;  // hide stages the filter leaves empty
+    const section = document.createElement("div");
+    section.className = "stage-section";
+    const header = document.createElement("h3");
+    header.textContent = stage;
+    section.appendChild(header);
+    if (!record) {
+      const p = document.createElement("p");
+      p.className = "muted";
+      p.textContent = "(no questions generated for this image)";
+      section.appendChild(p);
+    } else {
+      for (const q of shown) {
+        const row = document.createElement("div");
+        row.className = "qa-row";
+        row.dataset.searchText = questionSearchText(q);
+        // `reasoning_frame` is the generator's model-agnostic reasoning
+        // content; only some question_types carry one, so
+        // the tag line says so and the text itself sits in a .qa-frame
+        // that the "reasoning" checkbox reveals.
+        row.innerHTML =
+          `<div class="qa-q">${escapeHtml(q.question)}</div>` +
+          `<div class="qa-a">${escapeHtml(q.answer)}</div>` +
+          `<div class="qa-tag">${escapeHtml(q.question_type)}${q.reasoning_frame ? " &middot; reasoning_frame" : ""}</div>` +
+          (q.reasoning_frame ? `<div class="qa-frame">${escapeHtml(q.reasoning_frame)}</div>` : "");
+        if (q._boxId != null) {
+          row.classList.add("has-box");
+          row.addEventListener("mouseenter", () => highlightBox(q._boxId));
+          row.addEventListener("mouseleave", () => highlightBox(null));
+        } else {
+          let target = null;
+          if (family === "localization") target = locateLocalizationHoverTarget(q, manifestEntry);
+          else if (family === "identification" || family === "identification_bbox") target = locateIdentificationHoverTarget(q, manifestEntry);
+          if (!target) target = locateRegionHoverTarget(q, manifestEntry);
+          if (target) {
+            row.classList.add("has-box");
+            row.addEventListener("mouseenter", () => showHoverTarget(target.coord, target.kind, target));
+            row.addEventListener("mouseleave", () => clearHoverBox());
+          }
+        }
+        section.appendChild(row);
+      }
+    }
+    panel.appendChild(section);
+  }
+  applyFilter();
+}
+
+// One definition of "the text a question can be found by", shared by the
+// per-image filter and the global jump search below: question, answer,
+// question_type, and the reasoning_frame when the question has one (so a
+// search for e.g. "spanning the midline" or "outside every labeled" finds
+// the frames that say it).
+function questionSearchText(q) {
+  return (q.question + " " + q.answer + " " + q.question_type + " " + (q.reasoning_frame || "")).toLowerCase();
+}
+
+function applyFilter() {
+  const term = document.getElementById("filterInput").value.trim().toLowerCase();
+  document.querySelectorAll(".qa-row").forEach(row => {
+    const match = !term || row.dataset.searchText.includes(term);
+    row.classList.toggle("qa-hidden", !match);
+  });
+}
+document.getElementById("filterInput").addEventListener("input", applyFilter);
+document.getElementById("toggleFrames").addEventListener("change", (e) => {
+  document.getElementById("qaPanel").classList.toggle("show-frames", e.target.checked);
+});
+
+// ---------------------------------------------------------------------
+// Navigation
+// ---------------------------------------------------------------------
+
+async function goTo(index) {
+  if (!stems.length) return;
+  currentIndex = ((index % stems.length) + stems.length) % stems.length;
+  const key = stems[currentIndex];
+  const { cohort, stem } = splitKey(key);
+  const myToken = ++navToken;
+
+  await ensureStemLoaded(key);
+  if (myToken !== navToken) return; // a newer goTo() already took over
+
+  const anyRecord = cohortStages(cohort).map(s => data[key][s]).find(Boolean);
+
+  if (currentObjectUrl) {
+    URL.revokeObjectURL(currentObjectUrl);
+    currentObjectUrl = null;
+  }
+  const img = document.getElementById("mainImg");
+  let imgFound = false;
+  if (serverMode) {
+    const relPath = manifest[key]?.image_rel_path;
+    if (relPath) {
+      img.src = "images/" + relPath.split("/").map(encodeURIComponent).join("/");
+      imgFound = true;
+    } else {
+      img.removeAttribute("src");
+    }
+  } else {
+    const file = anyRecord?.image_path ? imagesByPath[imageKey(anyRecord.image_path)] : null;
+    if (file) {
+      currentObjectUrl = URL.createObjectURL(file);
+      img.src = currentObjectUrl;
+      imgFound = true;
+    } else {
+      img.removeAttribute("src");
+    }
+  }
+
+  const boxes = computeOverlay(key);
+  img.onload = () => renderOverlay(boxes);
+  renderOverlay(boxes); // in case it's already loaded/cached
+
+  renderQuestions(key);
+
+  const info = document.getElementById("stemInfo");
+  info.innerHTML =
+    `<b>${currentIndex + 1} / ${stems.length}</b> &nbsp; <b>${escapeHtml(cohort)}</b> &nbsp; ${escapeHtml(stem)}` +
+    (anyRecord ? ` &nbsp; split=${escapeHtml(anyRecord.split)} patient=${anyRecord.patient_id} study=${anyRecord.study_id}` : "") +
+    (imgFound ? "" : ` &nbsp; <span style="color:var(--marker)">image file not found</span>`);
+}
+
+// True if the image has at least one question the stage/type filter shows.
+async function keyMatches(key) {
+  if (!filterActive()) return true;
+  const stages = cohortStages(splitKey(key).cohort).filter(stageShown);
+  if (!stages.length) return false;  // e.g. marker_free has no grounding: skip without fetching
+  const rec = await ensureStemLoaded(key);
+  return stages.some(s => rec[s] && rec[s].questions.some(typeShown));
+}
+
+// Walks from `start` in direction `dir` (+1/-1, wrapping) to the first image
+// the filter matches, and shows it. In server mode each unseen image is
+// fetched, so a rare type can take a while; a newer call cancels this one.
+let searchToken = 0;
+async function goToMatch(start, dir) {
+  const resultEl = document.getElementById("jumpResult");
+  if (!stems.length) return;
+  if (!filterActive()) { resultEl.textContent = ""; return goTo(start); }
+  const myToken = ++searchToken;
+  const n = stems.length;
+  for (let step = 0; step < n; step++) {
+    const idx = (((start + dir * step) % n) + n) % n;
+    if (await keyMatches(stems[idx])) {
+      if (myToken !== searchToken) return;
+      resultEl.textContent = "";
+      return goTo(idx);
+    }
+    if (myToken !== searchToken) return;
+    if (step % 50 === 49) resultEl.textContent = `searching... ${step + 1}/${n}`;
+  }
+  await goTo(currentIndex);  // re-render so the panel shows the (empty) filtered view
+  resultEl.textContent = "no image here matches this stage/type";
+}
+
+document.getElementById("prevBtn").addEventListener("click", () => goToMatch(currentIndex - 1, -1));
+document.getElementById("nextBtn").addEventListener("click", () => goToMatch(currentIndex + 1, 1));
+document.getElementById("randomBtn").addEventListener("click", () => goToMatch(Math.floor(Math.random() * stems.length), 1));
+
+function populateTypeSelect() {
+  const types = filterStage === "all"
+    ? [...new Set(FAMILIES.flatMap(f => QUESTION_TYPES_BY_FAMILY[f]))]
+    : QUESTION_TYPES_BY_FAMILY[filterStage];
+  if (!types.includes(filterType)) filterType = "all";
+  document.getElementById("typeSelect").innerHTML =
+    `<option value="all">all question types</option>` +
+    types.map(t => `<option value="${t}"${t === filterType ? " selected" : ""}>${t}</option>`).join("");
+}
+document.getElementById("stageSelect").innerHTML =
+  `<option value="all">all stages</option>` + FAMILIES.map(f => `<option value="${f}">${f}</option>`).join("");
+populateTypeSelect();
+// Stay on this image if it still matches, otherwise move to the next match.
+document.getElementById("stageSelect").addEventListener("change", (e) => {
+  filterStage = e.target.value;
+  populateTypeSelect();
+  goToMatch(currentIndex, 1);
+});
+document.getElementById("typeSelect").addEventListener("change", (e) => {
+  filterType = e.target.value;
+  goToMatch(currentIndex, 1);
+});
+document.getElementById("gotoBtn").addEventListener("click", () => {
+  const v = parseInt(document.getElementById("gotoInput").value, 10);
+  if (!isNaN(v)) goTo(v - 1);
+});
+
+document.addEventListener("keydown", (e) => {
+  if (document.activeElement && ["INPUT", "TEXTAREA"].includes(document.activeElement.tagName)) return;
+  if (e.key === "ArrowLeft") goToMatch(currentIndex - 1, -1);
+  if (e.key === "ArrowRight") goToMatch(currentIndex + 1, 1);
+});
+
+for (const [id, kind] of [["toggleMarker", "marker"], ["toggleFinding", "finding"], ["toggleAnatomical", "anatomical"]]) {
+  document.getElementById(id).addEventListener("change", (e) => {
+    if (e.target.checked) visibleKinds.add(kind); else visibleKinds.delete(kind);
+    renderOverlay(computeOverlay(stems[currentIndex]));
+  });
+}
+
+// -- global jump-to-next-match search across every loaded image --
+document.getElementById("jumpInput").addEventListener("keydown", async (e) => {
+  if (e.key !== "Enter") return;
+  const term = e.target.value.trim().toLowerCase();
+  const resultEl = document.getElementById("jumpResult");
+  if (!term) { resultEl.textContent = ""; return; }
+  resultEl.textContent = "searching...";
+  const n = stems.length;
+  for (let step = 1; step <= n; step++) {
+    const idx = (currentIndex + step) % n;
+    const key = stems[idx];
+    const rec = await ensureStemLoaded(key); // no-op fetch in Option A, already loaded
+    const hit = cohortStages(splitKey(key).cohort).filter(stageShown).some(stage => {
+      const record = rec[stage];
+      if (!record) return false;
+      return record.questions.some(q => typeShown(q) && questionSearchText(q).includes(term));
+    });
+    if (hit) {
+      await goTo(idx);
+      resultEl.textContent = `found (#${idx + 1})`;
+      document.getElementById("filterInput").value = term;
+      applyFilter();
+      return;
+    }
+  }
+  resultEl.textContent = "no match";
+});
+</script>
+</body>
+</html>

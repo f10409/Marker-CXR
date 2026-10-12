@@ -1,0 +1,19 @@
+{
+  "finding_grounding_imagenome": {
+    "question": "Where is the {label}?",
+    "answer": "The {label} is located at {phrase}."
+  },
+  "marker_grounding": {
+    "question_singular": "Where is the marker?",
+    "question_plural": "Where are the markers?",
+    "answer_singular_region": "The marker is located at the {region}.",
+    "answer_singular_near": "The marker is located near the {region}, in the patient's {quadrant}.",
+    "answer_singular_quadrant": "The marker is located in the patient's {quadrant}.",
+    "answer_plural": "The markers are located at {phrase}."
+  },
+  "marker_grounding_discriminative": {
+    "question": "Is there a marker at the {region}?",
+    "answer_yes": "Yes",
+    "answer_no": "No"
+  }
+}

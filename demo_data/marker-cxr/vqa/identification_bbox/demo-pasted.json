@@ -1,0 +1,53 @@
+{
+  "image_path": "pasted_images_padded/p10/p10000001/s50000001/demo-pasted.png",
+  "patient_id": 10000001,
+  "study_id": 50000001,
+  "split": "train",
+  "questions": [
+    {
+      "question": "What is at the left clavicle?",
+      "answer": "marker.",
+      "answer_struct": [
+        "marker"
+      ],
+      "question_type": "region_to_object",
+      "question_id": "identification_bbox_50000001_0"
+    },
+    {
+      "question": "What do you see at [196, 242, 884, 932]?",
+      "answer": "marker.",
+      "answer_struct": {
+        "objects": [
+          "marker"
+        ],
+        "region": null
+      },
+      "question_type": "coordinate_to_label",
+      "reasoning_frame": "The queried box has top edge y0 = 196, bottom edge y1 = 242 and side edges x0 = 884, x1 = 932. On the image grid, y runs from 0 at the top to 1000 at the bottom, and x from 0 at the image's left, the patient's right, to 1000 at the image's right, the patient's left; the upper, middle and lower thirds of the image are split at y = 333 and y = 667, and the central band around the midline runs from x = 420 to x = 580. Its y span lies entirely in y \u2264 333, so the box occupies the upper part of the image; its x span lies entirely in x \u2265 580, so it is on the patient's left. That spot lies outside every key anatomical location. The object there is a marker. A marker is an artificial object pasted onto the image, typically brighter than the surrounding anatomy, with sharp edges. Markers placed outside the body usually appear near the image border or a corner.",
+      "question_id": "identification_bbox_50000001_1"
+    },
+    {
+      "question": "What anatomical region is at [196, 242, 884, 932]?",
+      "answer": "Outside the key anatomical locations, in the patient's upper left.",
+      "answer_struct": "upper left",
+      "question_type": "coordinate_to_anatomy",
+      "reasoning_frame": "The queried box has top edge y0 = 196, bottom edge y1 = 242 and side edges x0 = 884, x1 = 932. On the image grid, y runs from 0 at the top to 1000 at the bottom, and x from 0 at the image's left, the patient's right, to 1000 at the image's right, the patient's left; the upper, middle and lower thirds of the image are split at y = 333 and y = 667, and the central band around the midline runs from x = 420 to x = 580. Its y span lies entirely in y \u2264 333, so the box occupies the upper part of the image; its x span lies entirely in x \u2265 580, so it is on the patient's left. That spot lies outside every key anatomical location. Its y span lies mostly in y < 500 and its x span lies mostly in x > 500, so it falls in the patient's upper left.",
+      "question_id": "identification_bbox_50000001_2"
+    },
+    {
+      "question": "At [196, 242, 884, 932], is it a marker or a finding?",
+      "answer": "Marker.",
+      "answer_struct": "marker",
+      "question_type": "category_discrimination",
+      "question_id": "identification_bbox_50000001_3"
+    },
+    {
+      "question": "What do you see at [462, 512, 89, 139]?",
+      "answer": "There is no marker or finding there.",
+      "answer_struct": [],
+      "question_type": "coordinate_to_label_negative",
+      "reasoning_frame": "The queried box has top edge y0 = 462, bottom edge y1 = 512 and side edges x0 = 89, x1 = 139. On the image grid, y runs from 0 at the top to 1000 at the bottom, and x from 0 at the image's left, the patient's right, to 1000 at the image's right, the patient's left; the upper, middle and lower thirds of the image are split at y = 333 and y = 667, and the central band around the midline runs from x = 420 to x = 580. Its y span lies entirely in 333 \u2264 y \u2264 667, so the box occupies the middle part of the image; its x span lies entirely in x \u2264 420, so it is on the patient's right. No key anatomical location, marker, or finding overlaps that spot.",
+      "question_id": "identification_bbox_50000001_4"
+    }
+  ]
+}

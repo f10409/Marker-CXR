@@ -1,0 +1,15 @@
+{
+  "image_path": "marker_free_images_padded/p10/p10000003/s50000003/demo-marker-free.png",
+  "patient_id": 10000003,
+  "study_id": 50000003,
+  "split": "test",
+  "questions": [
+    {
+      "question": "Is there a marker visible in this image?",
+      "answer": "No",
+      "answer_struct": false,
+      "question_type": "marker_existence",
+      "question_id": "existence_negatives_50000003_0"
+    }
+  ]
+}

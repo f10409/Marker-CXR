@@ -1,0 +1,34 @@
+{
+  "anatomical_region_localization": {
+    "question": "Where is the {label}?"
+  },
+  "finding_localization_mscxr": {
+    "question": "Where is the {label}?"
+  },
+  "finding_localization_mscxr_region_conditioned": {
+    "question": "Where is the {label} at the {region}?"
+  },
+  "marker_localization": {
+    "question": "Where is the marker?"
+  },
+  "marker_localization_region_conditioned": {
+    "question": "Where is the marker at the {region}?"
+  },
+  "marker_count_region_conditioned": {
+    "question": "How many markers are near the {region}?"
+  },
+  "marker_localization_quadrant_conditioned": {
+    "question": "Where is the marker in the patient's {quadrant}?"
+  },
+  "marker_count_quadrant_conditioned": {
+    "question": "How many markers are in the patient's {quadrant}?"
+  },
+  "finding_localization_mscxr_negative": {
+    "question": "Where is the {label}?",
+    "answer": "There is no {label} in this image."
+  },
+  "marker_localization_negative": {
+    "question": "Where is the marker at the {region}?",
+    "answer": "There is no marker at the {region}."
+  }
+}

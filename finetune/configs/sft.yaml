@@ -1,0 +1,102 @@
+# SFT config for 01_finetune_markercxr.py (data / train / eval).
+# Paper arm "SFT" (run_name: no_reasoning). Other paper arms are --set
+# overrides of this file; see ../run_arms.sh.
+#
+# Relative paths resolve against the finetune/ folder, not the shell folder.
+# Any key can be overridden on the command line:
+#   python 01_finetune_markercxr.py train --config configs/sft.yaml --set run_name=test
+#
+# Outputs land in <output_root>/<run_name>/:
+#   config.yaml        resolved config of this run
+#   data_summary.csv   rows per question_type x split after balancing
+#   adapter/           LoRA adapter (+ checkpoints)
+#   train_log.json     trainer log history
+#   eval/finetuned/    predictions + metrics of the trained adapter
+# The base model's own eval goes to <output_root>/baseline/eval/.
+run_name: no_reasoning
+output_root: ../runs
+
+paths:
+  # The Marker-CXR folder downloaded from PhysioNet (holds vqa/ and csvs/).
+  marker_cxr_dir: ../data/marker-cxr
+  # Each vqa/*.json image_path is relative (<cohort dir>/<patient prefix>/
+  # <patient>/<study>/<file>.png); images_root is the folder holding the
+  # cohort dirs.
+  images_root: ../data/marker-cxr/images
+
+model:
+  model_id: google/medgemma-1.5-4b-it
+  # null = use CUDA_VISIBLE_DEVICES from the shell; an int pins one GPU.
+  gpu_id: null
+
+# The four QA stages. When a stage is on, every folder listed is loaded.
+# single_marker_* / marker_free_* folders are the single-marker and
+# marker-free cohorts of the same questions.
+stages:
+  existence:
+    enabled: true
+    folders: [existence, existence_negatives, single_marker_existence]
+  grounding:
+    enabled: true
+    folders: [grounding, single_marker_grounding]
+  localization:
+    enabled: true
+    folders: [localization_bbox, single_marker_localization_bbox, marker_free_localization_bbox]
+  identification:
+    enabled: true
+    folders: [identification_bbox, single_marker_identification_bbox]
+
+data:
+  # Drop these question_types from training only (eval still scores them).
+  exclude_question_types: []
+  # Keep these question_types for only a random fraction of their images in
+  # the train split (marker-data scaling arms, see sft_marker25.yaml).
+  subsample_question_types: []
+  subsample_fraction: null
+  # true: the 6 bbox types train on reasoning trace + Final Answer.
+  use_reasoning_for_boxes: false
+  # Same switch for the 3 coordinate-reading types (coordinate_to_*).
+  use_reasoning_for_coord_reading: false
+  # Skewed yes/no types, downsampled to 1:1 before the split.
+  balance_question_types:
+    - category_discrimination
+    - marker_grounding_discriminative
+    - specific_label_existence
+  seed: 42
+  # null = full split; a number for a quick test run.
+  max_train_examples: null
+  # Validation rows for the in-training eval loss only.
+  max_valid_examples: 1000
+
+train:
+  num_train_epochs: 1
+  learning_rate: 2.0e-4
+  # Effective batch = per_device x grad_accum x GPUs. The paper used
+  # 4 GPUs x 4 = 16; on one GPU set per_device_train_batch_size: 16.
+  per_device_train_batch_size: 4
+  per_device_eval_batch_size: 4
+  gradient_accumulation_steps: 1
+  warmup_ratio: 0.03
+  max_grad_norm: 0.3
+  logging_steps: 50
+  eval_steps: 500
+  save_strategy: steps
+  save_steps: 500
+  save_total_limit: 2
+  lora:
+    r: 16
+    alpha: 16
+    dropout: 0.05
+
+eval:
+  # "all" = score every stage, so every arm is scored on the same test rows.
+  stages: all
+  # null = every question_type; or a list to restrict.
+  question_types: null
+  # null = full test split; a number caps it (same rows for every arm).
+  test_sample_size: null
+  # Generation budget: rows with a reasoning trace get the longer pass.
+  regular_tokens: 100
+  regular_batch: 16
+  reasoning_tokens: 1000
+  reasoning_batch: 8

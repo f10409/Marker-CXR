@@ -1,0 +1,18 @@
+# Versions used for the paper (Python 3.12, CUDA 12.9).
+torch==2.13.0
+transformers==5.17.0
+trl==1.13.0
+peft==0.20.0
+bitsandbytes==0.50.2
+accelerate==1.15.0
+datasets==5.0.1
+numpy==2.5.3
+pandas==3.0.5
+scipy==1.18.1
+scikit-learn==1.9.1
+pillow==12.3.0
+pyyaml==6.0.3
+matplotlib==3.11.2
+tqdm
+# image_prep/ and vindr/ (reading DICOMs)
+pydicom==3.0.2

@@ -1,0 +1,22 @@
+{
+  "image_path": "marker_free_images_padded/p10/p10000003/s50000003/demo-marker-free.png",
+  "patient_id": 10000003,
+  "study_id": 50000003,
+  "split": "test",
+  "questions": [
+    {
+      "question": "Where is the marker at the right upper abdomen?",
+      "answer": "There is no marker at the right upper abdomen.",
+      "answer_struct": null,
+      "question_type": "marker_localization_negative",
+      "question_id": "marker_free_localization_bbox_50000003_0"
+    },
+    {
+      "question": "How many markers are in the patient's lower left?",
+      "answer": "0",
+      "answer_struct": 0,
+      "question_type": "marker_count_quadrant_conditioned",
+      "question_id": "marker_free_localization_bbox_50000003_1"
+    }
+  ]
+}

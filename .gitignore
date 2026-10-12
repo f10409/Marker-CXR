@@ -1,0 +1,15 @@
+__pycache__/
+*.py[oc]
+.ipynb_checkpoints/
+.venv/
+
+# Never commit data, images, model weights or run outputs.
+# (MIMIC-CXR / VinDr-CXR derived files are PhysioNet credentialed data.)
+data/
+runs/
+*.dcm
+*.dicom
+*.npy
+*.safetensors
+*.bin
+wandb/

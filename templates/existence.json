@@ -1,0 +1,23 @@
+{
+  "marker_existence": {
+    "question": "Is there a marker visible in this image?",
+    "answer_yes": "Yes",
+    "answer_no": "No"
+  },
+  "finding_existence": {
+    "question": "Does this image show a finding?",
+    "answer_yes": "Yes",
+    "answer_no": "No"
+  },
+  "specific_label_existence": {
+    "question": "Is there evidence of {label} in this image?",
+    "answer_yes": "Yes",
+    "answer_no": "No"
+  },
+  "marker_counting": {
+    "question": "How many markers are in this image?"
+  },
+  "region_conditioned_marker_counting": {
+    "question": "How many markers are near the {region}?"
+  }
+}

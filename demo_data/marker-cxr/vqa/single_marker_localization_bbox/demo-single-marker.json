@@ -1,0 +1,28 @@
+{
+  "image_path": "single_marker_images_padded/p10/p10000002/s50000002/demo-single-marker.png",
+  "patient_id": 10000002,
+  "study_id": 50000002,
+  "split": "valid",
+  "questions": [
+    {
+      "question": "Where is the marker? Give its full bounding box, not just a point.",
+      "answer": "At [268, 287, 445, 555].",
+      "answer_struct": [
+        268,
+        287,
+        445,
+        555
+      ],
+      "question_type": "marker_localization",
+      "reasoning_frame": "The marker is an artificial object pasted onto the image, typically brighter than the surrounding anatomy, with sharp edges and no fixed shape or size. It overlies the svc. On this image the svc spans y = 200 to 374 and x = 420 to 522, and at least half of the marker lies within that window. Its edges are y0 = 268, y1 = 287, x0 = 445, x1 = 555.",
+      "question_id": "single_marker_localization_bbox_50000002_0"
+    },
+    {
+      "question": "How many markers are in the patient's upper left?",
+      "answer": "1",
+      "answer_struct": 1,
+      "question_type": "marker_count_quadrant_conditioned",
+      "question_id": "single_marker_localization_bbox_50000002_1"
+    }
+  ]
+}

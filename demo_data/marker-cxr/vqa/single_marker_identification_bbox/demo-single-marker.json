@@ -1,0 +1,36 @@
+{
+  "image_path": "single_marker_images_padded/p10/p10000002/s50000002/demo-single-marker.png",
+  "patient_id": 10000002,
+  "study_id": 50000002,
+  "split": "valid",
+  "questions": [
+    {
+      "question": "What do you see at [268, 287, 445, 555]?",
+      "answer": "marker, located at the svc.",
+      "answer_struct": {
+        "objects": [
+          "marker"
+        ],
+        "region": "svc"
+      },
+      "question_type": "coordinate_to_label",
+      "reasoning_frame": "The queried box has top edge y0 = 268, bottom edge y1 = 287 and side edges x0 = 445, x1 = 555. On the image grid, y runs from 0 at the top to 1000 at the bottom, and x from 0 at the image's left, the patient's right, to 1000 at the image's right, the patient's left; the upper, middle and lower thirds of the image are split at y = 333 and y = 667, and the central band around the midline runs from x = 420 to x = 580. Its y span lies entirely in y \u2264 333, so the box occupies the upper part of the image; its x span lies entirely in 420 \u2264 x \u2264 580, so it is at the midline. That part of this image is the svc. The object there is a marker. A marker is an artificial object pasted onto the image, typically brighter than the surrounding anatomy, with sharp edges.",
+      "question_id": "single_marker_identification_bbox_50000002_0"
+    },
+    {
+      "question": "What anatomical region is at [268, 287, 445, 555]?",
+      "answer": "The svc.",
+      "answer_struct": "svc",
+      "question_type": "coordinate_to_anatomy",
+      "reasoning_frame": "The queried box has top edge y0 = 268, bottom edge y1 = 287 and side edges x0 = 445, x1 = 555. On the image grid, y runs from 0 at the top to 1000 at the bottom, and x from 0 at the image's left, the patient's right, to 1000 at the image's right, the patient's left; the upper, middle and lower thirds of the image are split at y = 333 and y = 667, and the central band around the midline runs from x = 420 to x = 580. Its y span lies entirely in y \u2264 333, so the box occupies the upper part of the image; its x span lies entirely in 420 \u2264 x \u2264 580, so it is at the midline. That part of this image is the svc.",
+      "question_id": "single_marker_identification_bbox_50000002_1"
+    },
+    {
+      "question": "Is there a marker at [268, 287, 445, 555]?",
+      "answer": "Yes",
+      "answer_struct": true,
+      "question_type": "coordinate_marker_existence",
+      "question_id": "single_marker_identification_bbox_50000002_2"
+    }
+  ]
+}

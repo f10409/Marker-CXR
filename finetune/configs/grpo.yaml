@@ -1,0 +1,90 @@
+# GRPO config for 02_grpo_markercxr.py. Paper arm "SFT + GRPO": RL on the
+# 6 bbox question types with direct prompts, starting from the SFT adapter
+# (configs/sft.yaml, run_name no_reasoning).
+
+run_name: grpo_box_no_reasoning
+output_root: ../runs
+
+paths:
+  marker_cxr_dir: ../data/marker-cxr
+  images_root: ../data/marker-cxr/images
+
+model:
+  model_id: google/medgemma-1.5-4b-it
+  # SFT LoRA to start RL from; merged into the base once, saved under
+  # <run dir>/merged_base. null = RL from the raw base model (cold start:
+  # zero-shot marker IoU is ~0, so the reward gives almost no signal at
+  # first -- only use null for the from-scratch comparison arm).
+  start_from_adapter: ../runs/no_reasoning/adapter
+  gpu_id: null
+
+# Only localization is on: all 6 box types live in these folders.
+stages:
+  existence:
+    enabled: false
+    folders: [existence, existence_negatives, single_marker_existence]
+  grounding:
+    enabled: false
+    folders: [grounding, single_marker_grounding]
+  localization:
+    enabled: true
+    folders: [localization_bbox, single_marker_localization_bbox, marker_free_localization_bbox]
+  identification:
+    enabled: false
+    folders: [identification_bbox, single_marker_identification_bbox]
+
+data:
+  # Which question_types to train the policy on (null = every type in the
+  # enabled stages). Text types are near ceiling after SFT; RL targets boxes.
+  question_types:
+    - anatomical_region_localization
+    - finding_localization_mscxr
+    - finding_localization_mscxr_region_conditioned
+    - marker_localization
+    - marker_localization_region_conditioned
+    - marker_localization_quadrant_conditioned
+  # Prompt style only (there is no imitation target in RL). false = direct
+  # prompt, matching the no_reasoning checkpoint. true = the reasoning
+  # prompt -- use with start_from_adapter = the full arm, and raise
+  # max_completion_length to 1000.
+  use_reasoning_for_boxes: false
+  use_reasoning_for_coord_reading: false
+  balance_question_types: []
+  seed: 42
+  max_train_examples: null
+
+train:
+  # One optimizer step = per_device_batch x grad_accum x GPUs completions.
+  # Paper: 32 per step (= 4 prompts x 8 generations), here on 1 GPU.
+  max_steps: 500
+  learning_rate: 5.0e-6
+  per_device_train_batch_size: 4
+  gradient_accumulation_steps: 8
+  num_generations: 8
+  # Completions generated in one forward pass (each carries an image at
+  # ~1 GB in the vision tower). 32 at once needs a ~180 GB GPU; on
+  # 40-48 GB cards use ~4.
+  generation_batch_size: 32
+  # Direct prompts answer in ~50 tokens; 128 leaves headroom. With
+  # use_reasoning_for_boxes: true set this to 1000, like eval does.
+  max_completion_length: 128
+  # Sampling temperature for the rollouts; 1.0 keeps the groups diverse
+  # (identical completions get zero group-relative advantage).
+  temperature: 1.0
+  # KL penalty toward the start model. 0 = plain GRPO, no reference pull.
+  beta: 0.0
+  reward:
+    # reward = parse_bonus + iou_weight*IoU + center_weight*(1 - center dist)
+    parse_bonus: 0.2
+    iou_weight: 1.0
+    center_weight: 0.3
+  logging_steps: 10
+  save_steps: 100
+  save_total_limit: 2
+  # true writes every sampled completion to a parquet per step (large);
+  # handy when debugging reward hacking.
+  log_completions: false
+  lora:
+    r: 16
+    alpha: 16
+    dropout: 0.05

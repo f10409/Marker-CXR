@@ -1,0 +1,72 @@
+# External test on VinDr-CXR. Build the data first with ../vindr/ scripts
+# (same JSON schema and bbox format as Marker-CXR). Two folders:
+# localization_bbox (finding_localization_mscxr) and existence
+# (specific_label_existence, finding_existence, balanced at build time).
+#
+#   python 01_finetune_markercxr.py eval --config configs/vindr_eval.yaml \
+#     --adapter ../runs/<arm>/adapter --out ../runs/vindr/<arm>
+# GRPO arms: also --set model.model_id=../runs/<arm>/merged_base.
+# Reasoning arms: also --set data.use_reasoning_for_boxes=true
+#   --set data.use_reasoning_for_coord_reading=true (same as internal eval).
+
+run_name: vindr_external
+output_root: ../runs/vindr
+
+paths:
+  marker_cxr_dir: ../data/vindr-cxr-vqa
+  images_root: ../data/vindr-cxr-vqa/images
+
+model:
+  model_id: google/medgemma-1.5-4b-it
+  gpu_id: null
+
+stages:
+  existence:
+    enabled: true
+    folders: [existence]
+  grounding:
+    enabled: false
+    folders: []
+  localization:
+    enabled: true
+    folders: [localization_bbox]
+  identification:
+    enabled: false
+    folders: []
+
+data:
+  exclude_question_types: []
+  use_reasoning_for_boxes: false
+  use_reasoning_for_coord_reading: false
+  balance_question_types: []
+  seed: 42
+  max_train_examples: null
+  max_valid_examples: 1000
+
+# Unused at eval time but required by the config loader.
+train:
+  num_train_epochs: 1
+  learning_rate: 2.0e-4
+  per_device_train_batch_size: 4
+  per_device_eval_batch_size: 4
+  gradient_accumulation_steps: 1
+  warmup_ratio: 0.03
+  max_grad_norm: 0.3
+  logging_steps: 50
+  eval_steps: 500
+  save_strategy: steps
+  save_steps: 500
+  save_total_limit: 2
+  lora:
+    r: 16
+    alpha: 16
+    dropout: 0.05
+
+eval:
+  stages: all
+  question_types: null
+  test_sample_size: null
+  regular_tokens: 100
+  regular_batch: 16
+  reasoning_tokens: 1000
+  reasoning_batch: 8

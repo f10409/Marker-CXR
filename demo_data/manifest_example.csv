@@ -1,0 +1,4 @@
+image_path,cohort,seed,real_marker_bbox
+p10/p10000001/s50000001/demo-pasted.dcm,pasted,0,"[[0.812, 0.071, 0.874, 0.123]]"
+p10/p10000002/s50000002/demo-single-marker.dcm,single_marker,0,[]
+p10/p10000003/s50000003/demo-marker-free.dcm,marker_free,,[]
