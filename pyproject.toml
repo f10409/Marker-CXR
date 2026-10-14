@@ -1,0 +1,37 @@
+[project]
+name = "marker-cxr"
+version = "0.1.0"
+description = "Fine-tune and evaluate MedGemma on Marker-CXR; rebuild the pasted-marker images"
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+# Versions used for the paper (Python 3.12, CUDA 12.9).
+dependencies = [
+    "torch==2.13.0",
+    "transformers==5.17.0",
+    "trl==1.13.0",
+    "peft==0.20.0",
+    "bitsandbytes==0.50.2",
+    "accelerate==1.15.0",
+    "datasets==5.0.1",
+    "numpy==2.5.3",
+    "pandas==3.0.5",
+    "scipy==1.18.1",
+    "scikit-learn==1.9.1",
+    "pillow==12.3.0",
+    "pyyaml==6.0.3",
+    "matplotlib==3.11.2",
+    "tqdm==4.70.1",
+    "pydicom==3.0.2",  # image_prep/ and vindr/ (reading DICOMs)
+]
+
+[tool.uv]
+package = false  # scripts only, nothing to install
+
+[tool.uv.sources]
+# CUDA 12.9 build: runs on any 12.x driver (the PyPI build needs CUDA 13).
+torch = { index = "pytorch-cu129" }
+
+[[tool.uv.index]]
+name = "pytorch-cu129"
+url = "https://download.pytorch.org/whl/cu129"
+explicit = true

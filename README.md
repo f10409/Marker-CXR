@@ -89,10 +89,13 @@ One JSON per image and folder (see `demo_data/marker-cxr/vqa/`):
 
 ## Setup
 
+Needs [uv](https://docs.astral.sh/uv/). `uv.lock` pins the exact versions used for the paper
+(Python 3.12, PyTorch 2.13 with CUDA 12.9).
+
 ```bash
-python -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt
-huggingface-cli login     # MedGemma is a gated model: accept its terms on Hugging Face first
+uv sync                   # makes .venv with the locked versions
+source .venv/bin/activate
+hf auth login             # MedGemma is a gated model: accept its terms on Hugging Face first
 ```
 
 Check the data loader on the demo data (no GPU; balancing is off because the demo has one row per
@@ -179,7 +182,7 @@ python prepare_images.py --manifest /path/to/marker-cxr/manifest.csv \
 ```
 
 With the shipped seeds, the output matches the released PNGs pixel for pixel. Check it with the
-shipped checksums (other numpy / scipy / pydicom versions than in `requirements.txt` may change
+shipped checksums (other numpy / scipy / pydicom versions than in `uv.lock` may change
 pixels):
 
 ```bash
