@@ -41,7 +41,15 @@ All data is credentialed PhysioNet data. None of it is in this repository.
 | MIMIC-CXR (DICOM) | [physionet.org/content/mimic-cxr](https://physionet.org/content/mimic-cxr/) | only to rebuild the images yourself |
 | VinDr-CXR | [physionet.org/content/vindr-cxr](https://physionet.org/content/vindr-cxr/) | external test |
 
-Put the Marker-CXR download at `data/marker-cxr/` (or change `paths` in the configs):
+Put the Marker-CXR download at `data/marker-cxr/` (or change `paths` in the configs). If it is
+somewhere else, link it there from the repository root:
+
+```bash
+mkdir -p data
+ln -s /path/to/Marker-CXR data/marker-cxr
+```
+
+Expected layout:
 
 ```
 data/marker-cxr/
