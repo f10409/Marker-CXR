@@ -7,6 +7,8 @@
 #   NPROC       GPUs for SFT training (accelerate)  (default: 1; paper: 4)
 #   GRPO_NPROC  GPUs for GRPO training              (default: 2, as in the paper)
 #   VINDR   1 = also eval on VinDr          (default: 1; needs ../vindr/ data)
+# On PCIe GPUs without NVLink (e.g. L40S) also set NCCL_P2P_DISABLE=1, or
+# multi-GPU runs can hang right after the model loads.
 # Arms whose adapter or metrics.json already exist are skipped.
 set -euo pipefail
 cd "$(dirname "$0")"

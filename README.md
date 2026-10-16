@@ -141,7 +141,17 @@ CUDA_VISIBLE_DEVICES=0,1 ./run_arms.sh grpo_box_no_reasoning   # GRPO on GPUs 0 
 Outputs go to `runs/<run name>/` (adapter, logs, `eval/finetuned/metrics.json`). The paper used
 4 NVIDIA L40S GPUs (48 GB) for SFT (effective batch 16) and 2 for GRPO (32 completions per step).
 With other GPU counts, change `gradient_accumulation_steps` in the config to keep these batch
-sizes (`GRPO_NPROC` sets the GRPO GPU count). Single commands:
+sizes (`GRPO_NPROC` sets the GRPO GPU count).
+
+**PCIe GPUs (no NVLink), like the L40S: set `NCCL_P2P_DISABLE=1` for multi-GPU runs.** Without it,
+NCCL peer-to-peer can fail silently: the run hangs right after the model loads, the GPUs show 100%
+use, and no error is printed. The paper runs used it:
+
+```bash
+NCCL_P2P_DISABLE=1 CUDA_VISIBLE_DEVICES=0,1 ./run_arms.sh grpo_box_no_reasoning
+```
+
+Do not set it on GPUs linked by NVLink (it would only make training slower). Single commands:
 
 ```bash
 python 01_finetune_markercxr.py train --config configs/sft.yaml
