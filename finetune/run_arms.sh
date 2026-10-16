@@ -4,13 +4,15 @@
 #   ./run_arms.sh no_reasoning no_marker  # only these
 # Env:
 #   PYTHON  python to use                   (default: python)
-#   NPROC   GPUs for training (accelerate)  (default: 1)
+#   NPROC       GPUs for SFT training (accelerate)  (default: 1; paper: 4)
+#   GRPO_NPROC  GPUs for GRPO training              (default: 2, as in the paper)
 #   VINDR   1 = also eval on VinDr          (default: 1; needs ../vindr/ data)
 # Arms whose adapter or metrics.json already exist are skipped.
 set -euo pipefail
 cd "$(dirname "$0")"
 PYTHON=${PYTHON:-python}
 NPROC=${NPROC:-1}
+GRPO_NPROC=${GRPO_NPROC:-2}
 VINDR=${VINDR:-1}
 RUNS=../runs
 
@@ -32,9 +34,10 @@ ARMS=(
   "grpo_box_base_reasoning|02|configs/grpo_from_base.yaml|true|sft|"
 )
 
-launch() {  # multi-GPU training goes through accelerate
-  if [ "$NPROC" -gt 1 ]; then
-    "$PYTHON" -m accelerate.commands.launch --multi_gpu --num_processes="$NPROC" --mixed_precision=bf16 "$@"
+launch() {  # launch <n GPUs> <script> ...; multi-GPU training goes through accelerate
+  local n=$1; shift
+  if [ "$n" -gt 1 ]; then
+    "$PYTHON" -m accelerate.commands.launch --multi_gpu --num_processes="$n" --mixed_precision=bf16 "$@"
   else
     "$PYTHON" "$@"
   fi
@@ -49,8 +52,8 @@ run_arm() {
 
   if [ -n "$script" ] && [ ! -f "$run/adapter/adapter_config.json" ]; then
     echo "== train $name"
-    if [ "$script" = 01 ]; then launch 01_finetune_markercxr.py train --config "$config" "${sets[@]}"
-    else launch 02_grpo_markercxr.py train --config "$config" --set "run_name=$name"; fi
+    if [ "$script" = 01 ]; then launch "$NPROC" 01_finetune_markercxr.py train --config "$config" "${sets[@]}"
+    else launch "$GRPO_NPROC" 02_grpo_markercxr.py train --config "$config" --set "run_name=$name"; fi
   fi
 
   local model=(--adapter "$run/adapter") iout=$run/eval/finetuned

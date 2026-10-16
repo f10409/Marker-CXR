@@ -123,8 +123,9 @@ Every arm in the paper, training then evaluation on the internal test set and Vi
 
 ```bash
 cd finetune
-NPROC=4 ./run_arms.sh                    # all arms
+NPROC=4 ./run_arms.sh                    # all arms (SFT on 4 GPUs, GRPO on 2)
 NPROC=4 ./run_arms.sh no_reasoning       # one arm
+CUDA_VISIBLE_DEVICES=0,1 ./run_arms.sh grpo_box_no_reasoning   # GRPO on GPUs 0 and 1
 ```
 
 | Paper arm | run name | config |
@@ -138,7 +139,9 @@ NPROC=4 ./run_arms.sh no_reasoning       # one arm
 | GRPO, no SFT | `grpo_box_base_reasoning` | `grpo_from_base.yaml` |
 
 Outputs go to `runs/<run name>/` (adapter, logs, `eval/finetuned/metrics.json`). The paper used
-4 GPUs for SFT (effective batch 16) and 1 GPU for GRPO. Single commands:
+4 NVIDIA L40S GPUs (48 GB) for SFT (effective batch 16) and 2 for GRPO (32 completions per step).
+With other GPU counts, change `gradient_accumulation_steps` in the config to keep these batch
+sizes (`GRPO_NPROC` sets the GRPO GPU count). Single commands:
 
 ```bash
 python 01_finetune_markercxr.py train --config configs/sft.yaml
