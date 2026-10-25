@@ -10,14 +10,20 @@ finding bboxes (MS-CXR) and anatomical regions (Chest ImaGenome). This repositor
 fine-tune MedGemma-1.5-4B on it (SFT and GRPO), to evaluate on Marker-CXR and VinDr-CXR, and to
 rebuild the pasted images.
 
+To make every result of the paper with one command, see [REPRODUCE.md](REPRODUCE.md).
+
 ## What is here
 
 ```
+reproduce.sh     make every result of the paper
+REPRODUCE.md     steps of reproduce.sh, and which file holds each paper result
 finetune/        SFT + GRPO training and evaluation of MedGemma-1.5-4B
   01_finetune_markercxr.py   SFT: data / train / eval / rescore
   02_grpo_markercxr.py       GRPO with a bbox reward (IoU + center distance)
+  00_data_stats.py           dataset numbers of the paper, next to the paper values
   run_arms.sh                train and evaluate every arm in the paper
   03_paper_results.ipynb     paper tables and figures (bootstrap 95% CIs, Holm p-values)
+  04_fig_examples.py         paper Fig. 2 (bbox examples)
   configs/                   one YAML per paper arm, plus vindr_eval.yaml
   src/                       data loading, prompt format, rewards, metrics, statistics
 image_prep/      rebuild the Marker-CXR images from MIMIC-CXR DICOMs
@@ -177,14 +183,7 @@ uv run --with jupyter jupyter nbconvert --to notebook --execute 03_paper_results
 `--with jupyter` adds Jupyter for this command only (it is not in `uv.lock`). The run saves a
 copy of the notebook with its outputs in `runs/paper/`, so the tracked notebook stays clean.
 
-| Paper | File in `runs/paper/` |
-|---|---|
-| Table 1 | `table1a_internal_findings.csv` + `table1b_internal_markers.csv` (without the `full` row) |
-| Fig. 3 | `fig_table3_differences.pdf` (numbers: `table3_differences.csv`) |
-| Fig. 4 | `fig_marker_scaling.pdf` |
-
-The other files are extra results, not in the paper. Fig. 1 and Fig. 2 are drawings and image
-examples. They are not made by this code.
+[REPRODUCE.md](REPRODUCE.md) lists which file holds each table, figure and number of the paper.
 
 ## VinDr-CXR external test
 
