@@ -18,6 +18,8 @@ from matplotlib.ticker import MaxNLocator
 from bootstrap_ci import fmt_p
 
 INK, MUTED, GRID, SERIES = "#0b0b0b", "#52514e", "#e4e3df", "#2a78d6"
+plt.rcParams["pdf.fonttype"] = 42  # embed TrueType, not Type 3 (IEEE PDF eXpress flags Type 3)
+plt.rcParams["ps.fonttype"] = 42
 
 
 def style(ax, grid_axis="x"):

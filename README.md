@@ -1,7 +1,7 @@
 # Marker-CXR
 
-Code for the paper **"Pasted markers teach a medical vision-language model where things are in
-chest X-rays"** (ISBI 2027, under review).
+Code for the paper **"Pasted markers teach medical vision-language models where things are in
+chest X-rays"** (under review).
 
 Marker-CXR is a visual question answering dataset built on MIMIC-CXR. Real radiographic markers
 (L/R letters, text, symbols) are cut from MIMIC-CXR films and pasted into other films, so every
@@ -17,6 +17,7 @@ finetune/        SFT + GRPO training and evaluation of MedGemma-1.5-4B
   01_finetune_markercxr.py   SFT: data / train / eval / rescore
   02_grpo_markercxr.py       GRPO with a bbox reward (IoU + center distance)
   run_arms.sh                train and evaluate every arm in the paper
+  03_paper_results.ipynb     paper tables and figures (bootstrap 95% CIs, Holm p-values)
   configs/                   one YAML per paper arm, plus vindr_eval.yaml
   src/                       data loading, prompt format, rewards, metrics, statistics
 image_prep/      rebuild the Marker-CXR images from MIMIC-CXR DICOMs
@@ -37,7 +38,7 @@ All data is credentialed PhysioNet data. None of it is in this repository.
 
 | Data | Where | Needed for |
 |---|---|---|
-| Marker-CXR (padded PNGs, `vqa/` JSONs, `csvs/`, marker bank, image manifest) | PhysioNet: **TODO link** | training, evaluation |
+| Marker-CXR (padded PNGs, `vqa/` JSONs, `csvs/`, marker bank, image manifest) | PhysioNet (coming soon) | training, evaluation |
 | MIMIC-CXR (DICOM) | [physionet.org/content/mimic-cxr](https://physionet.org/content/mimic-cxr/) | only to rebuild the images yourself |
 | VinDr-CXR | [physionet.org/content/vindr-cxr](https://physionet.org/content/vindr-cxr/) | external test |
 
@@ -161,6 +162,30 @@ python 02_grpo_markercxr.py train --config configs/grpo.yaml
 
 Any config key can be changed with `--set key=value` (the value is read as YAML).
 
+## Paper tables and figures
+
+`finetune/03_paper_results.ipynb` reads the predictions in `runs/` and writes tables (CSV) and
+figures (PNG + PDF) to `runs/paper/`. It needs all 8 arms evaluated on the internal test set and
+on VinDr-CXR (`run_arms.sh` with `VINDR=1`, the default). It runs on CPU in a few minutes.
+
+```bash
+cd finetune
+uv run --with jupyter jupyter nbconvert --to notebook --execute 03_paper_results.ipynb \
+  --output-dir ../runs/paper --ExecutePreprocessor.timeout=3000
+```
+
+`--with jupyter` adds Jupyter for this command only (it is not in `uv.lock`). The run saves a
+copy of the notebook with its outputs in `runs/paper/`, so the tracked notebook stays clean.
+
+| Paper | File in `runs/paper/` |
+|---|---|
+| Table 1 | `table1a_internal_findings.csv` + `table1b_internal_markers.csv` (without the `full` row) |
+| Fig. 3 | `fig_table3_differences.pdf` (numbers: `table3_differences.csv`) |
+| Fig. 4 | `fig_marker_scaling.pdf` |
+
+The other files are extra results, not in the paper. Fig. 1 and Fig. 2 are drawings and image
+examples. They are not made by this code.
+
 ## VinDr-CXR external test
 
 ```bash
@@ -207,7 +232,7 @@ shipped checksums (other numpy / scipy / pydicom versions than in `uv.lock` may 
 pixels):
 
 ```bash
-cd ../data/marker-cxr/images && sha256sum -c /path/to/marker-cxr/SHA256SUMS_images.txt
+cd ../data/marker-cxr/images && sha256sum -c /path/to/marker-cxr/image_sha256sums.txt
 ```
 
 Markers keep their
@@ -216,8 +241,17 @@ DICOMs listed in the manifest are read. See `demo_data/manifest_example.csv` for
 
 ## Citation
 
-TODO
+```bibtex
+@misc{li2026markercxr,
+  title  = {Pasted markers teach medical vision-language models where things are in chest X-rays},
+  author = {Li, Frank and Chavoshi, Mohammadreza and Khosravi, Bardia and Jeon, Young Seok and
+            Dapamede, Theo and Newsome, Janice and Trivedi, Hari and Gichoya, Judy},
+  note   = {ISBI 2027, under review},
+  year   = {2026}
+}
+```
 
 ## License
 
-TODO
+The code is under the Apache License 2.0 (see `LICENSE`). The data (Marker-CXR, MIMIC-CXR,
+VinDr-CXR) and MedGemma have their own terms. This license does not cover them.
