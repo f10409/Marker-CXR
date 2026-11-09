@@ -48,6 +48,12 @@ All data is credentialed PhysioNet data. None of it is in this repository.
 | MIMIC-CXR (DICOM) | [physionet.org/content/mimic-cxr](https://physionet.org/content/mimic-cxr/) | only to rebuild the images yourself |
 | VinDr-CXR | [physionet.org/content/vindr-cxr](https://physionet.org/content/vindr-cxr/) | external test |
 
+Marker-CXR was built with [RadHarmony](https://github.com/f10409/RadHarmony) at commit
+[`4013e80`](https://github.com/f10409/RadHarmony/commit/4013e804e8212fb67dd23cac113283e263070afc)
+(27 Aug 2026). RadHarmony reads the MS-CXR and Chest ImaGenome labels and bboxes. Later RadHarmony
+versions can give different labels, so use this commit to match the released data. The code in
+this repository does not need RadHarmony.
+
 Put the Marker-CXR download at `data/marker-cxr/` (or change `paths` in the configs). If it is
 somewhere else, link it there from the repository root:
 
